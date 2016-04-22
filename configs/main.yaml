@@ -1,13 +1,13 @@
 COMMON:
-    RUN_NAME: name_me
-    OUT_DIR_LOCATION: "/path/to/where/you/want/out_dir/to/be/put"
+    RUN_NAME: testing_development
+    OUT_DIR_LOCATION: "/home/gus/MEGAsync/zim/main/Yale/Projects/G_fuscipes/ddRAD/scaffold_organization_ld/pipeline_results"
 
 
 # --------------------------------------
-RULE_PYSCRIPT:
-    SETTING1: ''
-    IN_FILE1: ''
-    IN_FILE2: ''
+MAKE_ENDS_BED:
+    SCAFFOLD_FASTA: "/run/media/gus/Storage/louise/data/genomes/glossina_fuscipes/assemblies/GfusI1/Glossina-fuscipes-IAEA_SCAFFOLDS_GfusI1.renamed.fa"
+    ENDS_LENGTH: 10000
+
 
 # --------------------------------------
 RULE_RSCRIPT:

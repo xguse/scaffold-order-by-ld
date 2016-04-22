@@ -22,7 +22,7 @@ ORIGINAL_CONFIG_AS_STRING = yaml.dump(config, default_flow_style=False)
 
 RUN_NAME = config["COMMON"]["RUN_NAME"]
 OUT_DIR = "{base_dir}/{run_name}".format(base_dir=config["COMMON"]["OUT_DIR_LOCATION"], run_name=RUN_NAME)
-
+LOGS_DIR = OUT_DIR+"/logs"
 
 
 
@@ -41,82 +41,55 @@ rule save_run_config:
         with open(output.file, 'w') as cnf_out:
             cnf_out.write(ORIGINAL_CONFIG_AS_STRING)
 
-
 # ------------------------- #
-#### RULE_PYSCRIPT ####
-RULE_PYSCRIPT = config["RULE_PYSCRIPT"]
+#### MAKE_ENDS_BED ####
+MAKE_ENDS_BED = config["MAKE_ENDS_BED"]
+
+# log
+LOG_MAKE_ENDS_BED = LOGS_DIR+"/make_ends_bed.log"
 
 # params
-SETTING1 = RULE_PYSCRIPT["SETTING1"]
+ENDS_LENGTH = MAKE_ENDS_BED["ENDS_LENGTH"]
 
-# inputs
-IN_FILE1 = RULE_PYSCRIPT["IN_FILE1"]
-IN_FILE2 = RULE_PYSCRIPT["IN_FILE2"]
+# input
+SCAFFOLD_FASTA = MAKE_ENDS_BED["SCAFFOLD_FASTA"]
 
-# outputs
-RULE_PYSCRIPT_OUT = OUT_DIR+"/RULE_PYSCRIPT"
-
-OUT_FILE1 = RULE_PYSCRIPT_OUT+'/out_file1.csv'
-OUT_FILE2 = RULE_PYSCRIPT_OUT+'/out_file2.txt'
-
+# output
+MAKE_ENDS_BED_DIR = OUT_DIR+"/make_ends_bed"
+BED_PATH = MAKE_ENDS_BED_DIR+"/scaffold_ends.bed"
 
 # ---
-rule rule_pyscript:
+rule make_ends_bed:
+    log:
+        path=LOG_MAKE_ENDS_BED
+
     params:
-        setting1=SETTING1,
+        window=ENDS_LENGTH,
 
     input:
-        in_file1=IN_FILE1,
-        in_file2=IN_FILE2
+        fasta_path=SCAFFOLD_FASTA,
+
     output:
-        out_file1=OUT_FILE1,
-        out_file2=OUT_FILE2,
+        bed_path=BED_PATH,
+
 
     script:
-        "python/scripts/rule_pyscript.py"
+        "python/scripts/make_ends_bed.py"
 
 
 # ------------------------- #
-#### RULE_RSCRIPT ####
-RULE_RSCRIPT = config["RULE_RSCRIPT"]
-
-# params
-SETTINGA = RULE_RSCRIPT["SETTINGA"]
-
-# inputs
-IN_FILEA = RULE_RSCRIPT["IN_FILEA"]
-IN_FILEB = RULE_RSCRIPT["IN_FILEB"]
-
-# outputs
-RULE_RSCRIPT_OUT = OUT_DIR+"/rule_rscript"
-
-OUT_FILEA = RULE_RSCRIPT_OUT+'/out_filea.csv'
-OUT_FILEB = RULE_RSCRIPT_OUT+'/out_fileb.txt'
 
 
-# ---
-rule rule_rscript:
-    params:
-        settinga=SETTINGA,
 
-    input:
-        in_filea=IN_FILEA,
-        in_fileb=IN_FILEB
-    output:
-        out_filea=OUT_FILEA,
-        out_fileb=OUT_FILEB,
+# ------------------------- #
 
-    script:
-        "r/scripts/rule_rscript.R"
 
 
 
 #### ALL ####
-input_all = [rules.save_run_config.output,
-             rules.rule_pyscript.output,
-             rules.rule_rscript.output,
+input_all = [rules.make_ends_bed.output,
              ]
 # ---
 rule all:
     input:
-        input_all
+        [rules.save_run_config.output] + input_all

@@ -1,13 +1,13 @@
 COMMON:
     RUN_NAME: testing_development
     OUT_DIR_LOCATION: "/home/gus/MEGAsync/zim/main/Yale/Projects/G_fuscipes/ddRAD/scaffold_organization_ld/pipeline_results"
+    SCAFFOLD_FASTA: &scaffold_fasta  "/run/media/gus/Storage/louise/data/genomes/glossina_fuscipes/assemblies/GfusI1/Glossina-fuscipes-IAEA_SCAFFOLDS_GfusI1.renamed.fa"
 
 
 # --------------------------------------
 MAKE_ENDS_BED:
-    SCAFFOLD_FASTA: "/run/media/gus/Storage/louise/data/genomes/glossina_fuscipes/assemblies/GfusI1/Glossina-fuscipes-IAEA_SCAFFOLDS_GfusI1.renamed.fa"
+    SCAFFOLD_FASTA: *scaffold_fasta
     ENDS_LENGTH: 10000
-
 
 # --------------------------------------
 RULE_RSCRIPT:

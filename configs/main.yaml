@@ -1,5 +1,5 @@
 COMMON:
-    RUN_NAME: testing_development
+    RUN_NAME: testing_development_ends_100K_win_10kb
     OUT_DIR_LOCATION: "/home/gus/MEGAsync/zim/main/Yale/Projects/G_fuscipes/ddRAD/scaffold_organization_ld/pipeline_results"
     SCAFFOLD_FASTA: &scaffold_fasta  "/run/media/gus/Storage/louise/data/genomes/glossina_fuscipes/assemblies/GfusI1/Glossina-fuscipes-IAEA_SCAFFOLDS_GfusI1.renamed.fa"
 
@@ -7,10 +7,14 @@ COMMON:
 # --------------------------------------
 MAKE_ENDS_BED:
     SCAFFOLD_FASTA: *scaffold_fasta
-    ENDS_LENGTH: 10000
+    ENDS_LENGTH: 100000
 
 # --------------------------------------
-RULE_RSCRIPT:
-    SETTINGA: ''
-    IN_FILEA: ''
-    IN_FILEB: ''
+FILTER_VCF_BY_BED:
+    ORIG_VCF: /run/media/gus/Storage/louise/data/genomes/glossina_fuscipes/annotations/SNPs/vcftools_out/ddrad58_populations/individuals/tsetseFINAL_14Oct2014_f2_53.recode.renamed_scaffolds.maf0_05.OT_MS_NB_indv.recode.snpEff_ann.with_IDs.vcf
+
+# --------------------------------------
+GET_INDEP_SNPS:
+    INDEP_WINDOW: 10 kb
+    SLIDE_INDEP_WIN: 5
+    INDEP_VIF: 2

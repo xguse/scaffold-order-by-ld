@@ -2,7 +2,7 @@
 # $ conda create --name env_name -c bioconda  --file <this file>
 
 # REQUIRED: DO NOT CHANGE
-python>=3.4.3
+python>=3.5
 graphviz>=2.38.0
 snakemake>=3.4.2
 
@@ -16,3 +16,5 @@ xlrd
 xlwt
 vcftools
 pyfaidx
+plink2
+pyvcf

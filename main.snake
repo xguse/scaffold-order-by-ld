@@ -79,16 +79,190 @@ rule make_ends_bed:
 
 
 # ------------------------- #
+#### FILTER_VCF_BY_BED ####
+FILTER_VCF_BY_BED = config["FILTER_VCF_BY_BED"]
 
+# log
+LOG_FILTER_VCF_BY_BED = LOGS_DIR+"/filter_vcf_by_bed.log"
+
+# input
+ORIG_VCF = FILTER_VCF_BY_BED["ORIG_VCF"]
+BED_PATH = BED_PATH
+
+# output
+FILTER_VCF_BY_BED_DIR = OUT_DIR+"/filter_vcf_by_bed"
+ENDS_VCF = FILTER_VCF_BY_BED_DIR+"/scaffold_ends.recode.vcf"
+
+# params
+OUT_PREFIX = ENDS_VCF.rstrip(".recode.vcf")
+
+# ---
+rule filter_vcf_by_bed:
+    log:
+        path=LOG_FILTER_VCF_BY_BED
+
+    params:
+        out_prefix=OUT_PREFIX
+
+    input:
+        orig_vcf=ORIG_VCF,
+        bed_path=BED_PATH,
+
+
+    output:
+        ends_vcf=ENDS_VCF,
+
+    shell:
+        """ \
+        vcftools --vcf {input.orig_vcf} --bed {input.bed_path} \
+        --recode --recode-INFO-all --out {params.out_prefix} \
+        &> {log.path}
+        """
+
+
+# ------------------------- #
+#### GET_INDEP_SNPS ####
+GET_INDEP_SNPS = config["GET_INDEP_SNPS"]
+
+# log
+LOG_GET_INDEP_SNPS = LOGS_DIR+"/get_indep_snps.log"
+
+# input
+ENDS_VCF = ENDS_VCF
+
+# output
+GET_INDEP_SNPS_DIR = OUT_DIR+"/get_indep_snps"
+INDEP_IN = GET_INDEP_SNPS_DIR+"/SNP_IDs.prune.in"
+INDEP_OUT = GET_INDEP_SNPS_DIR+"/SNP_IDs.prune.out"
+
+# params
+INDEP_WINDOW = GET_INDEP_SNPS["INDEP_WINDOW"]
+SLIDE_INDEP_WIN = GET_INDEP_SNPS["SLIDE_INDEP_WIN"]
+INDEP_VIF = GET_INDEP_SNPS["INDEP_VIF"]
+
+INDEP_OUT_PREFIX = INDEP_IN.rstrip(".prune.in")
+
+
+
+
+# ---
+rule get_indep_snps:
+    log:
+        path=LOG_GET_INDEP_SNPS
+
+    params:
+        indep_window=INDEP_WINDOW,
+        slide_indep_win=SLIDE_INDEP_WIN,
+        indep_vif=INDEP_VIF,
+        indep_out_prefix=INDEP_OUT_PREFIX,
+
+    input:
+        ends_vcf=ENDS_VCF,
+
+    output:
+        INDEP_IN=INDEP_IN,
+        INDEP_OUT=INDEP_OUT,
+
+
+    shell:
+        """\
+        plink2 --allow-extra-chr --vcf {input.ends_vcf} \
+        --indep  {params.indep_window} {params.slide_indep_win} {params.indep_vif}\
+        --out {params.indep_out_prefix} \
+        &> {log.path}
+        """
+
+
+# ------------------------- #
+#### FILTER_VCF_BY_INDEP ####
+
+# log
+LOG_FILTER_VCF_BY_INDEP = LOGS_DIR+"/filter_vcf_by_indep.log"
+
+# input
+ENDS_VCF = ENDS_VCF
+KEEP_SNP_IDS = INDEP_IN
+
+# output
+FILTER_VCF_BY_INDEP_DIR = OUT_DIR+"/filter_vcf_by_indep"
+INDEP_VCF = FILTER_VCF_BY_INDEP_DIR+"/scaffold_ends.indep.recode.vcf"
+
+# params
+OUT_PREFIX = INDEP_VCF.rstrip(".recode.vcf")
+
+# ---
+rule filter_vcf_by_indep:
+    log:
+        path=LOG_FILTER_VCF_BY_INDEP
+
+    params:
+        out_prefix=OUT_PREFIX
+
+    input:
+        ends_vcf=ENDS_VCF,
+        keep_snp_ids=KEEP_SNP_IDS,
+
+    output:
+        indep_vcf=INDEP_VCF,
+
+    shell:
+        """ \
+        vcftools --vcf {input.ends_vcf} \
+        --snps {input.keep_snp_ids} \
+        --recode --recode-INFO-all --out {params.out_prefix} \
+        &> {log.path}
+        """
+
+
+# ------------------------- #
+#### INTERSCAFF_LD ####
+
+# log
+LOG_INTERSCAFF_LD = LOGS_DIR+"/interscaff_ld.log"
+
+# input
+INDEP_VCF = INDEP_VCF
+
+# output
+INTERSCAFF_LD_DIR = OUT_DIR+"/interscaff_ld"
+LD_OUT = INTERSCAFF_LD_DIR+"/scaffold_ends.indep.interchrom.geno.ld"
+
+# params
+OUT_PREFIX = LD_OUT.rstrip(".interchrom.geno.ld")
+
+# ---
+rule interscaff_ld:
+    log:
+        path=LOG_INTERSCAFF_LD
+
+    params:
+        out_prefix=OUT_PREFIX,
+
+    input:
+        indep_vcf=INDEP_VCF,
+
+    output:
+        ld_out=LD_OUT,
+
+    shell:
+        """ \
+        vcftools --vcf {input.indep_vcf} \
+        --interchrom-geno-r2 \
+        --out {params.out_prefix} \
+        &> {log.path}
+        """
 
 
 # ------------------------- #
 
 
 
-
 #### ALL ####
 input_all = [rules.make_ends_bed.output,
+             rules.filter_vcf_by_bed.output,
+             rules.get_indep_snps.output,
+             rules.filter_vcf_by_indep.output,
+             rules.interscaff_ld.output,
              ]
 # ---
 rule all:
